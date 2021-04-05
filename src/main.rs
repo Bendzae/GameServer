@@ -127,7 +127,7 @@ fn movement_system(
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
-        .add_resource(PlayerConfig { move_speed: 1.0 })
+        .add_resource(PlayerConfig { move_speed: 5.0 })
         .add_resource(GlobalInput {
             input_buffer: Vec::new(),
         })
