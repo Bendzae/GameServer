@@ -32,23 +32,23 @@ struct InputComponent {
     commands: Vec<InputCommand>,
 }
 
-fn init_players(commands: &mut Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
+fn init_players(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
     // camera
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     //Players
     commands
-        .spawn(SpriteBundle {
+        .spawn_bundle(SpriteBundle {
             material: materials.add(Color::rgb(0.5, 0.5, 1.0).into()),
             transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
             sprite: Sprite::new(Vec2::new(30.0, 30.0)),
             ..Default::default()
         })
-        .with(Player {
+        .insert(Player {
             id: 0,
             name: "One".to_string(),
         })
-        .with(InputComponent {
+        .insert(InputComponent {
             commands: Vec::new(),
         });
 }
@@ -99,7 +99,7 @@ fn movement_system(
     mut query: Query<(&mut Transform, &mut InputComponent)>,
 ) {
     for (mut transform, mut input) in query.iter_mut() {
-        let mut velocity = Vec3::zero();
+        let mut velocity = Vec3::ZERO;
         while !input.commands.is_empty() {
             let command = input.commands.pop().unwrap();
             match command {
@@ -127,15 +127,13 @@ fn movement_system(
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
-        .add_resource(PlayerConfig { move_speed: 5.0 })
-        .add_resource(GlobalInput {
+        .insert_resource(PlayerConfig { move_speed: 5.0 })
+        .insert_resource(GlobalInput {
             input_buffer: Vec::new(),
         })
         .add_startup_system(init_players.system())
-        .add_stage_after(
-            stage::UPDATE,
-            "fixed_update",
-            SystemStage::parallel()
+        .add_system_set(
+            SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(1.0 / 60.0))
                 .with_system(keyboard_input_system.system())
                 .with_system(input_system.system())
